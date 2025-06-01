@@ -13,3 +13,6 @@ kafka-python
 redis
 pytz
 tqdm
+univorn
+fastapi
+pydantic
