@@ -1,0 +1,89 @@
+# main config
+
+# API settings
+api_url: "https://testnet.binancefuture.com"  # testnet 4 futures
+
+data_paths:
+  raw_data_directory: "data/historical_raw"
+  processed_data_directory: "data/historical_processed"
+  final_agent_features_list_filename: "final_agent_features.json"
+  scaler_params_filename: "custom_fe_scaler_params.joblib"
+  scaler_colnames_filename: "custom_fe_scaler_colnames.joblib"
+  features_list_path: "data/historical_processed/final_agent_features.json"
+  scaler_params_path: "data/historical_processed/custom_fe_scaler_params.joblib"
+  scaler_colnames_path: "data/historical_processed/custom_fe_scaler_colnames.joblib"
+
+data_processing:
+  feature_engineer_timeframes: ["1h", "15m", "5m"]
+  primary_timeframe: "15m"
+  train_split_ratio: 0.7
+  validation_split_ratio: 0.15
+
+feature_engineering:
+  settings: {} 
+  indicators:
+    - { name: "SMA", params: { length: 10 }, on_column: "Close" }
+    - { name: "SMA", params: { length: 30 }, on_column: "Close" }
+    - { name: "EMA", params: { length: 10 }, on_column: "Close" }
+    - { name: "EMA", params: { length: 30 }, on_column: "Close" }
+    - { name: "RSI", params: { length: 14 }, on_column: "Close" }
+    - { name: "ATR", params: { length: 14 } }
+    - { name: "BBANDS", params: { length: 20, std: 2 }, on_column: "Close"}
+    - { name: "SMA", params: { length: 20 }, on_column: "Volume", output_name_override: "Vol_SMA_20" }
+    - { name: "PCT_CHANGE", params: { periods: 1 }, on_column: "Volume", output_name_override: "Vol_Change_1"}
+    - { name: "ROC", params: { length: 1 }, on_column: "Close" }
+    - { name: "ROC", params: { length: 5 }, on_column: "Close" }
+
+environment:
+  initial_balance: 10000.0
+  lookback_window: 30
+  commission_fee: .001
+  episode_max_steps: 1000
+  # Penalties
+  holding_penalty_ratio: .000001 
+  trade_penalty_ratio: .00001    
+  bankruptcy_penalty: -1.0
+  # Risk Management
+  stop_loss_pct: .05             
+  short_sell_margin_floor_pct: .2
+  position_size_fractions: [.125, .25] 
+  # Market Mechanics
+  slippage_factor_per_1k_value: .00001 
+  # Reward Shaping
+  volatility_penalty_coeff: .01
+  # State Features
+  atr_period_for_regime: 14
+  regime_atr_threshold_pct: .015
+
+
+agent:
+  # ActorCritic Network
+  actor_critic:
+    hidden_size1: 512
+    hidden_size2: 256
+  # PPO Hyperparameters
+  ppo:
+    lr: .0005
+    ppo_batch_size: 64
+    ppo_epochs: 10
+    gamma: .99
+    gae_lambda: .95
+    policy_clip: .2
+    entropy_coeff: .02 
+    value_loss_coeff: .5
+    max_grad_norm: .5
+
+training_loop:
+  max_total_timesteps: 2000000
+  num_episodes_fallback: 10000
+  rollout_steps: 2048 
+  save_model_freq_episodes: 50
+  log_freq_episodes: 5
+  eval_freq_episodes: 20
+  eval_episodes: 10
+  early_stopping_patience: 20 # Number of eval cycles with no improvement before stopping
+  model_save_directory: "src/models/saved_models/PPO"
+
+device: "auto"
+
+log_level: "INFO"
